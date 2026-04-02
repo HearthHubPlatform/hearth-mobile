@@ -5,18 +5,18 @@ packages:
     dependency: transitive
     description:
       name: _fe_analyzer_shared
-      sha256: dc27559385e905ad30838356c5f5d574014ba39872d732111cd07ac0beff4c57
+      sha256: "0b2f2bd91ba804e53a61d757b986f89f1f9eaed5b11e4b2f5a2468d86d6c9fc7"
       url: "https://pub.dev"
     source: hosted
-    version: "80.0.0"
+    version: "67.0.0"
   analyzer:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: analyzer
-      sha256: "192d1c5b944e7e53b24b5586db760db934b177d4147c42fbca8c8c5f1eb8d11e"
+      sha256: "37577842a27e4338429a1cbc32679d508836510b056f1eedf0c8d20e39c1383d"
       url: "https://pub.dev"
     source: hosted
-    version: "7.3.0"
+    version: "6.4.1"
   analyzer_plugin:
     dependency: transitive
     description:
@@ -213,10 +213,10 @@ packages:
     dependency: transitive
     description:
       name: characters
-      sha256: f71061c654a3380576a52b451dd5532377954cf9dbd272a78fc8479606670803
+      sha256: faf38497bda5ead2a8c7615f4f7939df04333478bf32e4173fcb06d428b5716b
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.0"
+    version: "1.4.1"
   charcode:
     dependency: transitive
     description:
@@ -371,13 +371,13 @@ packages:
     source: hosted
     version: "1.0.0+7.3.0"
   dart_style:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: dart_style
-      sha256: "5b236382b47ee411741447c1f1e111459c941ea1b3f2b540dde54c210a3662af"
+      sha256: "1efa911ca7086affd35f463ca2fc1799584fb6aa89883cf0af8e3664d6a02d55"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "2.3.2"
   dartx:
     dependency: transitive
     description:
@@ -421,12 +421,11 @@ packages:
   drift:
     dependency: "direct main"
     description:
-      path: drift
-      ref: "53ef7e9f19fe8f68416251760b4b99fe43f1c575"
-      resolved-ref: "53ef7e9f19fe8f68416251760b4b99fe43f1c575"
-      url: "https://github.com/immich-app/drift"
-    source: git
-    version: "2.26.0"
+      name: drift
+      sha256: "970cd188fddb111b26ea6a9b07a62bf5c2432d74147b8122c67044ae3b97e99e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.31.0"
   drift_dev:
     dependency: "direct dev"
     description:
@@ -977,13 +976,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.2"
-  immich_mobile_immich_lint:
-    dependency: "direct dev"
-    description:
-      path: immich_lint
-      relative: true
-    source: path
-    version: "0.0.0"
   immich_ui:
     dependency: "direct main"
     description:
@@ -1015,37 +1007,27 @@ packages:
   isar:
     dependency: "direct main"
     description:
-      path: "packages/isar"
-      ref: bb1dca40fe87a001122e5d43bc6254718cb49f3a
-      resolved-ref: bb1dca40fe87a001122e5d43bc6254718cb49f3a
-      url: "https://github.com/immich-app/isar"
-    source: git
-    version: "3.1.8"
-  isar_community:
-    dependency: transitive
-    description:
-      name: isar_community
-      sha256: "28f59e54636c45ba0bb1b3b7f2656f1c50325f740cea6efcd101900be3fba546"
+      name: isar
+      sha256: "99165dadb2cf2329d3140198363a7e7bff9bbd441871898a87e26914d25cf1ea"
       url: "https://pub.dev"
     source: hosted
-    version: "3.3.0-dev.3"
-  isar_community_flutter_libs:
+    version: "3.1.0+1"
+  isar_flutter_libs:
     dependency: "direct main"
     description:
-      name: isar_community_flutter_libs
-      sha256: c2934fe755bb3181cb67602fd5df0d080b3d3eb52799f98623aa4fc5acbea010
+      name: isar_flutter_libs
+      sha256: bc6768cc4b9c61aabff77152e7f33b4b17d2fc93134f7af1c3dd51500fe8d5e8
       url: "https://pub.dev"
     source: hosted
-    version: "3.3.0-dev.3"
+    version: "3.1.0+1"
   isar_generator:
     dependency: "direct dev"
     description:
-      path: "packages/isar_generator"
-      ref: bb1dca40fe87a001122e5d43bc6254718cb49f3a
-      resolved-ref: bb1dca40fe87a001122e5d43bc6254718cb49f3a
-      url: "https://github.com/immich-app/isar"
-    source: git
-    version: "3.1.8"
+      name: isar_generator
+      sha256: "76c121e1295a30423604f2f819bc255bc79f852f3bc8743a24017df6068ad133"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0+1"
   jni:
     dependency: transitive
     description:
@@ -1178,18 +1160,18 @@ packages:
     dependency: transitive
     description:
       name: matcher
-      sha256: dc58c723c3c24bf8d3e2d3ad3f2f9d7bd9cf43ec6feaa64181775e60190153f2
+      sha256: dc0b7dc7651697ea4ff3e69ef44b0407ea32c487a39fff6a4004fa585e901861
       url: "https://pub.dev"
     source: hosted
-    version: "0.12.17"
+    version: "0.12.19"
   material_color_utilities:
     dependency: transitive
     description:
       name: material_color_utilities
-      sha256: f7142bb1154231d7ea5f96bc7bde4bda2a0945d2806bb11670e30b850d56bdec
+      sha256: "9c337007e82b1889149c82ed242ed1cb24a66044e30979c44912381e9be4c48b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.11.1"
+    version: "0.13.0"
   meta:
     dependency: transitive
     description:
@@ -1435,10 +1417,10 @@ packages:
     dependency: "direct dev"
     description:
       name: pigeon
-      sha256: "0045b172d1da43c40cb3f58e80e04b50a65cba20b8b70dc880af04181f7758da"
+      sha256: "694073e4677d631a5aa2c633c5944140c0e7f361cbf3e55b1709dd11688713bb"
       url: "https://pub.dev"
     source: hosted
-    version: "26.0.2"
+    version: "22.7.2"
   pinput:
     dependency: "direct main"
     description:
@@ -1742,13 +1724,13 @@ packages:
     source: hosted
     version: "3.1.1"
   source_gen:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: source_gen
-      sha256: "35c8150ece9e8c8d263337a265153c3329667640850b9304861faea59fc98f6b"
+      sha256: "14658ba5f669685cd3d63701d01b31ea748310f7ab854e471962670abcf57832"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "1.5.0"
   source_span:
     dependency: transitive
     description:
@@ -1897,10 +1879,10 @@ packages:
     dependency: transitive
     description:
       name: test_api
-      sha256: ab2726c1a94d3176a45960b6234466ec367179b87dd74f1611adb1f3b5fb9d55
+      sha256: "8161c84903fd860b26bfdefb7963b3f0b68fee7adea0f59ef805ecca346f0c7a"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.7"
+    version: "0.7.10"
   thumbhash:
     dependency: "direct main"
     description:
