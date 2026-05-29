@@ -1,10 +1,27 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:immich_mobile/domain/models/store.model.dart';
+import 'package:immich_mobile/entities/store.entity.dart';
 import 'package:immich_mobile/hearth_config.dart';
 import 'package:immich_mobile/providers/auth.provider.dart';
+import 'package:immich_mobile/providers/background_sync.provider.dart';
+import 'package:immich_mobile/providers/gallery_permission.provider.dart';
+import 'package:immich_mobile/providers/infrastructure/search.provider.dart';
+import 'package:immich_mobile/providers/infrastructure/user.provider.dart';
+import 'package:immich_mobile/providers/websocket.provider.dart';
+import 'package:immich_mobile/repositories/activity_api.repository.dart';
+import 'package:immich_mobile/repositories/album_api.repository.dart';
+import 'package:immich_mobile/repositories/asset_api.repository.dart';
+import 'package:immich_mobile/repositories/drift_album_api_repository.dart';
+import 'package:immich_mobile/repositories/partner_api.repository.dart';
+import 'package:immich_mobile/repositories/person_api.repository.dart';
+import 'package:immich_mobile/repositories/timeline.repository.dart';
+import 'package:immich_mobile/routing/router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../models/wizard_state.dart';
-import '../models/wizard_step.dart';
-import '../services/discovery.service.dart';
+import 'package:immich_mobile/features/wizard/models/wizard_state.dart';
+import 'package:immich_mobile/features/wizard/models/wizard_step.dart';
+import 'package:immich_mobile/features/wizard/services/discovery.service.dart';
 
 part 'wizard_provider.g.dart';
 
@@ -122,15 +139,108 @@ class WizardLogic extends _$WizardLogic {
   }
 
   Future<void> login(String email, String password) async {
+    final trimmedEmail = email.trim();
     state = state.copyWith(isLoading: true, errorMessage: null);
 
+    // Mirror login_form.dart:247 - invalidate every API repository so the
+    // next .read pulls a fresh client with the new access token / endpoint.
+    _invalidateAllApiRepositoryProviders();
+
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      final result = await ref.read(authProvider.notifier).login(trimmedEmail, password);
+      debugPrint('[Wizard] login successful for $trimmedEmail');
       state = state.copyWith(isLoading: false);
-      debugPrint("Login successful for $email");
-    } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: "Invalid credentials. Please try again.");
+
+      final router = ref.read(appRouterProvider);
+
+      // Branch 1: forced password change (admin-set initial password, etc.)
+      if (result.shouldChangePassword && !result.isAdmin) {
+        debugPrint('[Wizard] shouldChangePassword=true -> ChangePasswordRoute');
+        await router.push(const ChangePasswordRoute());
+        return;
+      }
+
+      // Branch 2: beta timeline - full sync orchestration, then TabShellRoute.
+      // Mirrors login_form.dart:255-265 step-for-step, minus the manage-media
+      // permission dialog (skipped because dialogs require a BuildContext
+      // which the wizard provider does not have; see comment below).
+      final isBeta = Store.isBetaTimelineEnabled;
+      if (isBeta) {
+        debugPrint('[Wizard] beta timeline -> requesting gallery permission');
+        await ref.read(galleryPermissionNotifier.notifier).requestGalleryPermission();
+
+        // login_form.dart calls getManageMediaPermission() here on Android
+        // when StoreKey.manageLocalMediaAndroid is true. That helper shows
+        // an AlertDialog asking the user to grant MANAGE_MEDIA. We can't
+        // open dialogs from a provider, so this prompt is intentionally
+        // deferred - the user can grant it later from Settings, or we can
+        // surface it from login_step.dart after this method returns.
+
+        debugPrint('[Wizard] beta -> handleSyncFlow (background, unawaited)');
+        unawaited(_handleSyncFlow());
+
+        debugPrint('[Wizard] beta -> websocket connect');
+        ref.read(websocketProvider.notifier).connect();
+
+        debugPrint('[Wizard] -> TabShellRoute (replaceAll)');
+        unawaited(router.replaceAll([const TabShellRoute()]));
+        return;
+      }
+
+      // Branch 3: legacy (non-beta) timeline - straight to TabController.
+      debugPrint('[Wizard] legacy timeline -> TabControllerRoute (replaceAll)');
+      await router.replaceAll([const TabControllerRoute()]);
+    } catch (e, st) {
+      debugPrint('[Wizard] login FAILED for "$trimmedEmail": $e\n$st');
+      final friendlyError = _friendlyLoginError(e);
+      state = state.copyWith(isLoading: false, errorMessage: friendlyError);
     }
+  }
+
+  /// Mirrors login_form.dart's `handleSyncFlow()` (lines 182-192). Pulls
+  /// the local media catalog, drains the remote sync stream, hashes new
+  /// assets, and optionally re-syncs linked albums when the user opted
+  /// into album sync. Run unawaited so the UI can transition immediately.
+  Future<void> _handleSyncFlow() async {
+    final backgroundManager = ref.read(backgroundSyncProvider);
+    debugPrint('[Wizard] handleSyncFlow: syncLocal(full)');
+    await backgroundManager.syncLocal(full: true);
+    debugPrint('[Wizard] handleSyncFlow: syncRemote');
+    await backgroundManager.syncRemote();
+    debugPrint('[Wizard] handleSyncFlow: hashAssets');
+    await backgroundManager.hashAssets();
+    if (Store.get(StoreKey.syncAlbums, false)) {
+      debugPrint('[Wizard] handleSyncFlow: syncLinkedAlbum');
+      await backgroundManager.syncLinkedAlbum();
+    }
+    debugPrint('[Wizard] handleSyncFlow: complete');
+  }
+
+  /// Direct inline port of `utils/provider_utils.dart`'s
+  /// `invalidateAllApiRepositoryProviders`, which takes a `WidgetRef` and
+  /// is therefore unusable from a riverpod_annotation Notifier. The body
+  /// is byte-identical to the upstream helper - keep them in sync.
+  void _invalidateAllApiRepositoryProviders() {
+    ref.invalidate(userApiRepositoryProvider);
+    ref.invalidate(activityApiRepositoryProvider);
+    ref.invalidate(partnerApiRepositoryProvider);
+    ref.invalidate(albumApiRepositoryProvider);
+    ref.invalidate(personApiRepositoryProvider);
+    ref.invalidate(assetApiRepositoryProvider);
+    ref.invalidate(timelineRepositoryProvider);
+    ref.invalidate(searchApiRepositoryProvider);
+    ref.invalidate(driftAlbumApiRepositoryProvider);
+  }
+
+  String _friendlyLoginError(Object error) {
+    final message = error.toString();
+    if (message.contains('401') || message.toLowerCase().contains('unauthorized')) {
+      return 'Invalid email or password.';
+    }
+    if (message.contains('SocketException') || message.toLowerCase().contains('network')) {
+      return 'Could not reach the server. Check your connection.';
+    }
+    return 'Login failed. Please try again.';
   }
 
   void reset() {

@@ -1,4 +1,4 @@
-import 'wizard_step.dart';
+import 'package:immich_mobile/features/wizard/models/wizard_step.dart';
 
 enum WizardDiscoveryStatus { idle, discovering, discovered, discoveryFailed }
 

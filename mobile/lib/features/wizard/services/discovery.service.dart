@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immich_mobile/hearth_config.dart';
 import 'package:nsd/nsd.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

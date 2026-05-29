@@ -43,8 +43,12 @@ dependencies:
   immich_ui:
     path: './packages/ui'
   intl: ^0.20.2
-  isar: ^3.1.0
-  isar_flutter_libs: ^3.1.0
+  # Locked to exact 3.1.0 (no caret) so pub cannot drift to 3.1.0+1.
+  # The checked-in .g.dart files were generated against this exact
+  # schema; on Flutter 3.38 we cannot regenerate (legacy build_runner
+  # needs the removed frontend_server.dart.snapshot).
+  isar: '3.1.0'
+  isar_flutter_libs: '3.1.0'
   local_auth: ^2.3.0
   logging: ^1.3.0
   maplibre_gl: ^0.22.0
@@ -110,10 +114,13 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   #immich_mobile_immich_lint:
-    #path: './immich_lint'
+  #path: './immich_lint'
   integration_test:
     sdk: flutter
-  isar_generator: ^3.1.0
+  # isar_generator disabled - we cannot regenerate on Flutter 3.38.
+  # Leaving it active forces pub to resolve its analyzer <6.0.0 ceiling,
+  # which conflicts with the rest of the codegen ecosystem.
+  # isar_generator: ^3.1.0
   mocktail: ^1.0.4
   # Type safe platform code
   pigeon: ^26.0.2
@@ -122,13 +129,26 @@ dev_dependencies:
 
 dependency_overrides:
   analyzer: ^6.4.1
-  isar: ^3.1.0
-  isar_generator: ^3.1.0
+  # Exact pin (no caret) - prevents pub drifting to 3.1.0+1, which is
+  # binary-incompatible with the checked-in .g.dart files generated
+  # against 3.1.0. Must match the dependency-section pin above.
+  isar: '3.1.0'
+  # isar_generator disabled in lockstep with dev_dependencies - we
+  # cannot regenerate on Flutter 3.38 anyway (legacy build_runner
+  # needs the removed frontend_server.dart.snapshot).
+  # isar_generator: ^3.1.0
   drift: ^2.16.0
   source_gen: ^1.5.0
   pigeon: 22.7.2
   dart_style: 2.3.2
   #custom_lint: ^0.6.4
+  # === Hearth Hub Android v2 embedding fixes ===
+  # bonsoir <5.1.6 and flutter_plugin_android_lifecycle <2.0.17 still
+  # ship the deprecated v1 Android embedding which Flutter 3.x's
+  # Android toolchain rejects at compile time. Force resolution up to
+  # releases that use v2 embedding.
+  bonsoir: '^5.1.6'
+  flutter_plugin_android_lifecycle: '^2.0.17'
 
 flutter:
   uses-material-design: true
