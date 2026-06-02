@@ -70,7 +70,11 @@ class _DiscoveryFailedView extends HookConsumerWidget {
         context,
       ).push<String>(MaterialPageRoute(builder: (_) => const QrScannerView()));
       if (scanned != null && scanned.isNotEmpty) {
-        await notifier.connectToServer(scanned);
+        // Hand the full `hearth://pair?host=...&key=...` payload to the
+        // wizard logic. It validates the URI, connects to the host on
+        // port 2283, and - if a `key` is present - performs API-key
+        // auto-login + post-auth routing in one shot.
+        await notifier.processQRCodePayload(scanned);
       }
     }
 

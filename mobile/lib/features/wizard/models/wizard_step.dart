@@ -1,6 +1,1 @@
-enum WizardStep {
-  serverUrl,
-  login,
-  initialSync,
-  completed,
-}
+enum WizardStep { serverUrl, adminSetup, login, initialSync, completed }

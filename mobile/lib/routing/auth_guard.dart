@@ -25,20 +25,22 @@ class AuthGuard extends AutoRouteGuard {
       // Validate the access token with the server
       final res = await _apiService.authenticationApi.validateAccessToken();
       if (res == null || res.authStatus != true) {
-        // If the access token is invalid, take user back to login
-        _log.fine('User token is invalid. Redirecting to login');
-        unawaited(router.replaceAll([const LoginRoute()]));
+        // HEARTH FORK: route back through the onboarding wizard instead of
+        // the legacy Immich LoginPage so the user re-pairs their appliance.
+        _log.fine('User token is invalid. Redirecting to wizard');
+        unawaited(router.replaceAll([const WizardRoute()]));
       }
     } on StoreKeyNotFoundException catch (_) {
-      // If there is no access token, take us to the login page
+      // HEARTH FORK: no access token -> onboarding wizard, not legacy login.
       _log.warning('No access token in the store.');
-      unawaited(router.replaceAll([const LoginRoute()]));
+      unawaited(router.replaceAll([const WizardRoute()]));
       return;
     } on ApiException catch (e) {
       // On an unauthorized request, take us to the login page
       if (e.code == HttpStatus.unauthorized) {
+        // HEARTH FORK: unauthorized -> onboarding wizard, not legacy login.
         _log.warning("Unauthorized access token.");
-        unawaited(router.replaceAll([const LoginRoute()]));
+        unawaited(router.replaceAll([const WizardRoute()]));
         return;
       }
     } catch (e) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -29,7 +31,20 @@ class _QrScannerViewState extends State<QrScannerView> {
     final value = capture.barcodes.isNotEmpty ? capture.barcodes.first.rawValue : null;
     if (value == null || value.isEmpty) return;
 
+    // Only accept Hearth Hub pairing payloads. The QR shown by the
+    // backend is always `hearth://pair?host=<ip>&key=<token>`. Bare URLs
+    // or arbitrary text are ignored so a stray QR poster on the wall
+    // can't accidentally redirect the wizard.
+    if (!value.startsWith('hearth://pair')) {
+      debugPrint('[QrScanner] ignored non-hearth payload: "$value"');
+      return;
+    }
+
     _didScan = true;
+    debugPrint('[QrScanner] hearth://pair detected, popping with payload');
+    // Stop the camera before popping so the texture is released cleanly
+    // even if the destination route takes a moment to appear.
+    unawaited(_controller.stop());
     Navigator.of(context).pop(value);
   }
 

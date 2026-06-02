@@ -7,6 +7,7 @@ class WizardState {
   final String serverUrl;
   final bool isLoading;
   final bool isServerValidated;
+  final bool isServerInitialized;
   final String? errorMessage;
   final WizardDiscoveryStatus discoveryStatus;
 
@@ -15,6 +16,7 @@ class WizardState {
     this.serverUrl = '',
     this.isLoading = false,
     this.isServerValidated = false,
+    this.isServerInitialized = true,
     this.errorMessage,
     this.discoveryStatus = WizardDiscoveryStatus.idle,
   });
@@ -25,6 +27,7 @@ class WizardState {
     String? serverUrl,
     bool? isLoading,
     bool? isServerValidated,
+    bool? isServerInitialized,
     String? errorMessage,
     WizardDiscoveryStatus? discoveryStatus,
   }) {
@@ -33,6 +36,7 @@ class WizardState {
       serverUrl: serverUrl ?? this.serverUrl,
       isLoading: isLoading ?? this.isLoading,
       isServerValidated: isServerValidated ?? this.isServerValidated,
+      isServerInitialized: isServerInitialized ?? this.isServerInitialized,
       errorMessage: errorMessage, // We allow passing null to clear errors
       discoveryStatus: discoveryStatus ?? this.discoveryStatus,
     );

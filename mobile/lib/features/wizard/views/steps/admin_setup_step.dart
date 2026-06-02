@@ -3,26 +3,23 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:immich_mobile/features/wizard/models/wizard_state.dart';
 import 'package:immich_mobile/features/wizard/providers/wizard_provider.dart';
-import 'package:immich_mobile/features/wizard/models/wizard_step.dart';
-import 'package:immich_mobile/features/wizard/views/qr_scanner_view.dart';
 
-class LoginStep extends HookConsumerWidget {
-  const LoginStep({super.key});
+class AdminSetupStep extends HookConsumerWidget {
+  const AdminSetupStep({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(wizardLogicProvider);
     final notifier = ref.read(wizardLogicProvider.notifier);
 
+    final nameController = useTextEditingController();
     final emailController = useTextEditingController();
     final passwordController = useTextEditingController();
     final obscurePassword = useState(true);
 
-    // Surface backend / validation failures from `notifier.login` as a
-    // red SnackBar. We listen on the wizard state instead of awaiting
-    // the future so the UI stays decoupled from the call site and
-    // multiple error sources (validateServer, login) can share the
-    // same surface.
+    // Surface backend / validation failures from `notifier.createAdmin` as a
+    // red SnackBar. We listen on the wizard state instead of awaiting the
+    // future so the UI stays decoupled from the call site.
     ref.listen<WizardState>(wizardLogicProvider, (previous, next) {
       final newError = next.errorMessage;
       if (newError != null && newError.isNotEmpty && newError != previous?.errorMessage) {
@@ -41,14 +38,30 @@ class LoginStep extends HookConsumerWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.lock_person_outlined, size: 80, color: Theme.of(context).colorScheme.primary),
+        Icon(Icons.admin_panel_settings_outlined, size: 80, color: Theme.of(context).colorScheme.primary),
         const SizedBox(height: 24),
-        const Text("Sign In", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+        const Text("Welcome to Hearth Hub", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
-        Text("Connected to ${state.serverUrl}", style: const TextStyle(color: Colors.grey)),
+        const Text(
+          "This is a brand-new Hearth Hub. Create the first administrator account to get started.",
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16, color: Colors.grey),
+        ),
         const SizedBox(height: 40),
         TextField(
+          controller: nameController,
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+            labelText: "Name",
+            prefixIcon: Icon(Icons.person_outline),
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
           controller: emailController,
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
           decoration: const InputDecoration(
             labelText: "Email Address",
             prefixIcon: Icon(Icons.email_outlined),
@@ -59,6 +72,7 @@ class LoginStep extends HookConsumerWidget {
         TextField(
           controller: passwordController,
           obscureText: obscurePassword.value,
+          textInputAction: TextInputAction.done,
           decoration: InputDecoration(
             labelText: "Password",
             prefixIcon: const Icon(Icons.password_outlined),
@@ -74,7 +88,9 @@ class LoginStep extends HookConsumerWidget {
           height: 50,
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: state.isLoading ? null : () => notifier.login(emailController.text, passwordController.text),
+            onPressed: state.isLoading
+                ? null
+                : () => notifier.createAdmin(emailController.text, passwordController.text, nameController.text),
             child: state.isLoading
                 ? const SizedBox(
                     height: 24,
@@ -84,28 +100,9 @@ class LoginStep extends HookConsumerWidget {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                : const Text("Login to Hearth Hub"),
+                : const Text("Create Hearth Hub Admin"),
           ),
         ),
-        const SizedBox(height: 8),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            icon: const Icon(Icons.qr_code_scanner),
-            label: const Text("Scan Pairing Code"),
-            onPressed: state.isLoading
-                ? null
-                : () async {
-                    final scanned = await Navigator.of(
-                      context,
-                    ).push<String>(MaterialPageRoute(builder: (_) => const QrScannerView()));
-                    if (scanned != null && scanned.isNotEmpty) {
-                      await notifier.processQRCodePayload(scanned);
-                    }
-                  },
-          ),
-        ),
-        TextButton(onPressed: () => notifier.moveToStep(WizardStep.serverUrl), child: const Text("Change Server URL")),
       ],
     );
   }

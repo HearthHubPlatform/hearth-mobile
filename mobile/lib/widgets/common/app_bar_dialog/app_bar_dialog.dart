@@ -132,7 +132,9 @@ class ImmichAppBarDialog extends HookConsumerWidget {
                     ref.read(backupProvider.notifier).cancelBackup();
                     unawaited(ref.read(assetProvider.notifier).clearAllAssets());
                     ref.read(websocketProvider.notifier).disconnect();
-                    unawaited(context.replaceRoute(const LoginRoute()));
+                    // HEARTH FORK: logout returns to the onboarding wizard,
+                    // never the legacy Immich LoginPage.
+                    unawaited(context.replaceRoute(const WizardRoute()));
                   },
                 );
               },
