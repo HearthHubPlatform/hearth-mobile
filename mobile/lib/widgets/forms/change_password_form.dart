@@ -105,26 +105,31 @@ class ChangePasswordForm extends HookConsumerWidget {
   }
 }
 
-class PasswordInput extends StatelessWidget {
+class PasswordInput extends HookWidget {
   final TextEditingController controller;
 
   const PasswordInput({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
+    final obscureNewPassword = useState(true);
     return TextFormField(
-      obscureText: true,
+      obscureText: obscureNewPassword.value,
       controller: controller,
       decoration: InputDecoration(
         labelText: 'change_password_form_new_password'.tr(),
         border: const OutlineInputBorder(),
         hintText: 'change_password_form_new_password'.tr(),
+        suffixIcon: IconButton(
+          icon: Icon(obscureNewPassword.value ? Icons.visibility_off : Icons.visibility),
+          onPressed: () => obscureNewPassword.value = !obscureNewPassword.value,
+        ),
       ),
     );
   }
 }
 
-class ConfirmPasswordInput extends StatelessWidget {
+class ConfirmPasswordInput extends HookWidget {
   final TextEditingController originalController;
   final TextEditingController confirmController;
 
@@ -139,13 +144,18 @@ class ConfirmPasswordInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final obscureConfirmPassword = useState(true);
     return TextFormField(
-      obscureText: true,
+      obscureText: obscureConfirmPassword.value,
       controller: confirmController,
       decoration: InputDecoration(
         labelText: 'change_password_form_confirm_password'.tr(),
         hintText: 'change_password_form_reenter_new_password'.tr(),
         border: const OutlineInputBorder(),
+        suffixIcon: IconButton(
+          icon: Icon(obscureConfirmPassword.value ? Icons.visibility_off : Icons.visibility),
+          onPressed: () => obscureConfirmPassword.value = !obscureConfirmPassword.value,
+        ),
       ),
       validator: _validateInput,
       autovalidateMode: AutovalidateMode.always,

@@ -70,6 +70,7 @@ dependencies:
   photo_manager: ^3.7.1
   pinput: ^5.0.2
   punycode: ^1.0.0
+  qr_flutter: ^4.1.0
   riverpod_annotation: ^2.6.1
   scroll_date_picker: ^3.8.0
   scrollable_positioned_list: ^0.3.8

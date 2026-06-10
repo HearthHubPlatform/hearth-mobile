@@ -5,6 +5,8 @@ import 'package:flutter_hooks/flutter_hooks.dart' hide Store;
 import 'package:immich_mobile/domain/models/store.model.dart';
 import 'package:immich_mobile/entities/store.entity.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
+import 'package:immich_mobile/features/wizard/views/pairing_hub_view.dart';
+import 'package:immich_mobile/features/wizard/views/user_management_view.dart';
 import 'package:immich_mobile/routing/router.dart';
 import 'package:immich_mobile/widgets/settings/advanced_settings.dart';
 import 'package:immich_mobile/widgets/settings/asset_list_settings/asset_list_settings.dart';
@@ -92,7 +94,15 @@ class _MobileLayout extends StatelessWidget {
                 ],
         )
         .toList();
-    return ListView(padding: const EdgeInsets.only(top: 10.0, bottom: 60), children: [...settings]);
+    final isAdmin = Store.tryGet(StoreKey.currentUser)?.isAdmin ?? false;
+    return ListView(
+      padding: const EdgeInsets.only(top: 10.0, bottom: 60),
+      children: [
+        const _PairingHubTile(),
+        if (isAdmin) const _FamilyManagementTile(),
+        ...settings,
+      ],
+    );
   }
 }
 
@@ -127,6 +137,42 @@ class _TabletLayout extends HookWidget {
         const VerticalDivider(width: 1),
         Expanded(flex: 4, child: selectedSection.value.widget),
       ],
+    );
+  }
+}
+
+/// Account action: opens the Device & Family Pairing hub (link a new device
+/// for the current user, or - for admins - create a family member account).
+/// Implemented as a plain ListTile + Navigator.push (rather than a
+/// SettingsCard with an AutoRoute) because this fork does not run
+/// build_runner to regenerate router.gr.dart.
+class _PairingHubTile extends StatelessWidget {
+  const _PairingHubTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.qr_code_scanner),
+      title: const Text('Device & Family Pairing'),
+      subtitle: const Text('Link a new device or add a family member'),
+      onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PairingHubView())),
+    );
+  }
+}
+
+/// Admin-only action: opens the Family Management screen to natively reset a
+/// user's password (no email recovery on an air-gapped appliance). Plain
+/// ListTile + Navigator.push for the same build_runner reason as above.
+class _FamilyManagementTile extends StatelessWidget {
+  const _FamilyManagementTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.manage_accounts),
+      title: const Text('Family Management'),
+      subtitle: const Text('Reset a family member\'s password'),
+      onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const UserManagementView())),
     );
   }
 }
