@@ -6,9 +6,7 @@ import 'package:immich_mobile/models/server_info/server_features.model.dart';
 import 'package:immich_mobile/models/server_info/server_info.model.dart';
 import 'package:immich_mobile/models/server_info/server_version.model.dart';
 import 'package:immich_mobile/services/server_info.service.dart';
-import 'package:immich_mobile/utils/semver.dart';
 import 'package:logging/logging.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 class ServerInfoNotifier extends StateNotifier<ServerInfo> {
   ServerInfoNotifier(this._serverInfoService)
@@ -39,45 +37,31 @@ class ServerInfoNotifier extends StateNotifier<ServerInfo> {
   }
 
   Future<void> getServerVersion() async {
+    // Hearth Hub is a sovereign, air-gapped appliance: we never compare
+    // versions or surface an "update available" banner. We still record the
+    // server version for display, but the status is always upToDate.
     try {
       final serverVersion = await _serverInfoService.getServerVersion();
-
-      // using isClientOutOfDate since that will show to users regardless of if they are an admin
       if (serverVersion == null) {
-        state = state.copyWith(versionStatus: VersionStatus.error);
         return;
       }
-
       await _checkServerVersionMismatch(serverVersion);
     } catch (e, stackTrace) {
       _log.severe("Failed to get server version", e, stackTrace);
-      state = state.copyWith(versionStatus: VersionStatus.error);
       return;
     }
   }
 
-  _checkServerVersionMismatch(ServerVersion serverVersion, {ServerVersion? latestVersion}) async {
-    state = state.copyWith(serverVersion: serverVersion, latestVersion: latestVersion);
-
-    var packageInfo = await PackageInfo.fromPlatform();
-    SemVer clientVersion = SemVer.fromString(packageInfo.version);
-
-    if (serverVersion < clientVersion || (latestVersion != null && serverVersion < latestVersion)) {
-      state = state.copyWith(versionStatus: VersionStatus.serverOutOfDate);
-      return;
-    }
-
-    if (clientVersion < serverVersion && clientVersion.differenceType(serverVersion) != SemVerType.patch) {
-      state = state.copyWith(versionStatus: VersionStatus.clientOutOfDate);
-      return;
-    }
-
-    state = state.copyWith(versionStatus: VersionStatus.upToDate);
+  _checkServerVersionMismatch(ServerVersion serverVersion) async {
+    // Sovereign appliance: ignore any latest/release version and never flag a
+    // mismatch. Record the server version and force upToDate so the update
+    // banner can never render.
+    state = state.copyWith(serverVersion: serverVersion, versionStatus: VersionStatus.upToDate);
   }
 
   handleReleaseInfo(ServerVersion serverVersion, ServerVersion? latestVersion) {
-    // Update local server version
-    _checkServerVersionMismatch(serverVersion, latestVersion: latestVersion);
+    // Neutered for Hearth Hub: release/update info (originating from GitHub via
+    // the server) is ignored so the app always believes it is up to date.
   }
 
   getServerFeatures() async {
@@ -102,10 +86,7 @@ final serverInfoProvider = StateNotifierProvider<ServerInfoNotifier, ServerInfo>
 });
 
 final versionWarningPresentProvider = Provider.family<bool, UserDto?>((ref, user) {
-  final serverInfo = ref.watch(serverInfoProvider);
-  return switch (serverInfo.versionStatus) {
-    VersionStatus.clientOutOfDate || VersionStatus.error => true,
-    VersionStatus.serverOutOfDate => serverInfo.latestVersion != null && (user?.isAdmin ?? false),
-    VersionStatus.upToDate => false,
-  };
+  // Sovereign appliance: the update/version-mismatch banner is permanently
+  // disabled so users can never be nudged toward the official Immich app.
+  return false;
 });

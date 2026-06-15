@@ -141,37 +141,79 @@ class _TabletLayout extends HookWidget {
   }
 }
 
+/// Card styled to match the native [SettingsCard] (same Padding/Card/ListTile
+/// markup, radius, colors, and primary-colored title) but driven by a plain
+/// Navigator.push instead of an AutoRoute, because this fork does not run
+/// build_runner to regenerate router.gr.dart.
+class _PairingSettingsCard extends StatelessWidget {
+  const _PairingSettingsCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Card(
+        elevation: 0,
+        clipBehavior: Clip.antiAlias,
+        color: context.colorScheme.surfaceContainer,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+        margin: const EdgeInsets.symmetric(vertical: 4.0),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+          leading: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(16)),
+              color: context.isDarkTheme ? Colors.black26 : Colors.white.withAlpha(100),
+            ),
+            padding: const EdgeInsets.all(16.0),
+            child: Icon(icon, color: context.primaryColor),
+          ),
+          title: Text(title, style: context.textTheme.titleMedium!.copyWith(color: context.primaryColor)),
+          subtitle: Text(subtitle, style: context.textTheme.bodyMedium),
+          onTap: onTap,
+        ),
+      ),
+    );
+  }
+}
+
 /// Account action: opens the Device & Family Pairing hub (link a new device
 /// for the current user, or - for admins - create a family member account).
-/// Implemented as a plain ListTile + Navigator.push (rather than a
-/// SettingsCard with an AutoRoute) because this fork does not run
-/// build_runner to regenerate router.gr.dart.
 class _PairingHubTile extends StatelessWidget {
   const _PairingHubTile();
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.qr_code_scanner),
-      title: const Text('Device & Family Pairing'),
-      subtitle: const Text('Link a new device or add a family member'),
+    return _PairingSettingsCard(
+      icon: Icons.qr_code_scanner,
+      title: 'Device & Family Pairing',
+      subtitle: 'Link a new device or add a family member',
       onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PairingHubView())),
     );
   }
 }
 
 /// Admin-only action: opens the Family Management screen to natively reset a
-/// user's password (no email recovery on an air-gapped appliance). Plain
-/// ListTile + Navigator.push for the same build_runner reason as above.
+/// user's password (no email recovery on an air-gapped appliance).
 class _FamilyManagementTile extends StatelessWidget {
   const _FamilyManagementTile();
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.manage_accounts),
-      title: const Text('Family Management'),
-      subtitle: const Text('Reset a family member\'s password'),
+    return _PairingSettingsCard(
+      icon: Icons.manage_accounts,
+      title: 'Family Management',
+      subtitle: 'Reset a family member\'s password',
       onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const UserManagementView())),
     );
   }
